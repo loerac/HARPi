@@ -23,10 +23,25 @@ if [ "y" == "$updt" ]; then
 	echo ""
 fi
 
-# Installing mosquitto
-echo "Installing mosquitto..."
+# Installing Pip
+# Most python comes with pip but who knows, maybe pip isn't installed
+echo -n "Install pip? [y/n] >> "
+read pypip
+pypip=$(echo "$pypip" | awk '{print tolower($0)}')
+
+if [ "y" == "$pypip" ]; then
+	echo "Installing Pip..."	
+	sudo apt-get install python-pip
+	echo "Done installing Pip..."
+	echo ""
+fi
+
+# Installing mosquitto and paho-mqtt
+echo "Installing mosquitto and paho-mqtt..."
 sudo apt-get install mosquitto
 echo "Done installing mosquitto..."
+pip install paho-mqtt
+echo "Done installing paho-mqtt..."
 
 # Checking if mosquitto is running
 echo -n "Do you want to check the status of mosquitto [y/n] >> "
