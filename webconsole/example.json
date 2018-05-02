@@ -1,0 +1,26 @@
+[
+    {
+      "complete": 0,
+      "desc": "A test description",
+      "ip": "amazon.com",
+      "name": "Test publisher",
+      "token": "Temperature is ...",
+      "topic": "test/publisher"
+    },
+    {
+      "complete": 0,
+      "desc": "Another test description",
+      "ip": "bing.com",
+      "name": "Another test publisher",
+      "token": "Light is ...",
+      "topic": "another/test"
+    },
+    {
+      "complete": 0,
+      "desc": "Third test description",
+      "ip": "google.com",
+      "name": "Third publisher",
+      "token": "UV Index is ...",
+      "topic": "third/testtopic"
+    }
+]
