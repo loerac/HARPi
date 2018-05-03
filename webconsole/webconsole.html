@@ -11,8 +11,8 @@
         <script type="text/javascript">
             
 //Using a websockets-enabed broker and a randomly generated clientid
-var brokerUrl = "broker.mqttdashboard.com"
-var brokerWebsocketsPort = 8000
+var brokerUrl = "harpio.duckdns.org"
+var brokerWebsocketsPort = 1884
 var client = new Messaging.Client(brokerUrl, brokerWebsocketsPort, "myclientid_" + parseInt(Math.random() * 100, 10));
 
 //Gets called if the websocket/mqtt connection gets disconnected for any reason
@@ -37,7 +37,8 @@ client.onMessageArrived = function (message) {
         for (index=0, len=node_list.length; index<len; ++index) {
             console.log(node_list[index]);
             var node_name = node_list[index].name;
-            var content = "<h2>Node Name: " + node_name + "</h2><table class=\"table\"><tr>";
+            var node_status = node_list[index].status;
+            var content = "<h2>" + node_name + ": " + node_status + "</h2><table class=\"table\"><tr>";
             for(var propt in node_list[index]){
                 console.log(propt + ': ' + node_list[index][propt])
                 content += '<td class=\"col-md-1\"><b>' + propt + ': </b><br/>' + node_list[index][propt] + '</td>';
@@ -76,7 +77,7 @@ var publish = function (payload, topic, qos) {
         <div class="container">
             <br/>
             <button onclick="client.connect(options);">Connect</button>
-            <button onclick="client.subscribe('gmiller/testtopic', {qos: 2}); alert('Subscribed');">Subscribe</button>
+            <button onclick="client.subscribe('HARPi/webdata/', {qos: 2}); alert('Subscribed');">Subscribe</button>
             <button onclick="client.disconnect(); ">Disconnect</button>
             <div id="node_data"></div>
             <div id="debug"></div>
