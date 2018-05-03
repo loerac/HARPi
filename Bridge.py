@@ -36,6 +36,9 @@ from pprint import pprint
 # Global Variables
 from global_var import Global_Var
 
+# JSON
+import json
+
 class Bridge:
     def __init__(self):
         # Getting IP address
@@ -43,7 +46,8 @@ class Bridge:
         sock.connect(("8.8.8.8", 80))
 
         # Initialize MQTT
-        self.BROKER = sock.getsockname()[0]
+        #self.BROKER = sock.getsockname()[0]
+        self.BROKER = "harpio.duckdns.org"
         sock.close()
         self.PORT = 1883
         self.ALIVE = 60
@@ -64,6 +68,7 @@ class Bridge:
         # Set up event handlers
         self.MQTTC.on_connect = self.connect
         self.MQTTC.on_message = self.message
+        self.MQTTC.on_publish = self.publish
 
     # Subscribe to a topic
     def connect(self, mosq, obj, flag, rc):
@@ -73,12 +78,24 @@ class Bridge:
     def message(self, mosq, obj, msg):
         topic = msg.topic.split("HARPi/")[1]
         data = msg.payload
-        print("[ in ] %s : %s" %(topic, data))
+        if isinstance(msg, dict):
+            print("[ in ] %s : " %topic)
+            pprint(data)
+        else:
+            print("[ in ] %s : %s" %(topic, data))
 
         if topic[:8] == self.gv.get_set_node():
             self.set_node(topic[9:], data)
         elif topic[:6] == self.gv.get_status():
             self.status_node(topic[7:], data)
+
+    # Send message
+    def publish(self, client, userdata, msg):
+        return
+
+    # Message event handler
+    def send_msg(self, msg):
+        self.MQTTC.publish("HARPi/webdata/", json.dumps(msg))
 
     # Store new node values in dictionary
     def set_node(self, key, value):
@@ -144,6 +161,7 @@ if __name__=="__main__":
         if bd.node_status(1) == 1:
             my_list.append(bd.get_node())
             pprint(my_list)
+            bd.send_msg(my_list)
         elif bd.node_status(2) == 2:
             temp_list = bd.update_node()
             key = temp_list['topic']
@@ -151,3 +169,4 @@ if __name__=="__main__":
                 if my_list[i]['topic'] == key:
                     my_list[i] = temp_list
             pprint(my_list)
+            bd.send_msg(my_list)
