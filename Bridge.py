@@ -78,10 +78,7 @@ class Bridge:
     def message(self, mosq, obj, msg):
         topic = msg.topic.split("HARPi/")[1]
         data = msg.payload
-        if isinstance(msg, dict):
-            print("[ in ] %s : " %topic)
-            pprint(data)
-        else:
+        if topic[:7] != "webdata":
             print("[ in ] %s : %s" %(topic, data))
 
         if topic[:8] == self.gv.get_set_node():
@@ -100,7 +97,7 @@ class Bridge:
     # Store new node values in dictionary
     def set_node(self, key, value):
         self.NODE_DICT[key] = value
-        print("[ st ] %s : %s" %(key, value))
+        print("[ st ] {} : {}".format(key, value))
         if self.NODE_DICT[self.gv.get_complete()] == "1":
             self.NODE_BIT |= self.gv.get_new_node()
             self.NODE_LIST.append(self.NODE_DICT.copy())
@@ -113,7 +110,7 @@ class Bridge:
                 self.NODE_LIST[i][self.gv.get_status()] = value
                 self.NODE_LIST[i][self.gv.get_complete()] = 1
                 self.NODE_BIT |= self.gv.get_status_node()
-                print("[ ok ] %s : %s" %(self.NODE_LIST[i][self.gv.get_topic()], value))
+                print("[ ok ] {} : {}".format(self.NODE_LIST[i][self.gv.get_topic()], value))
 
     # Return dictionary with new child values
     def get_node(self):
@@ -159,14 +156,18 @@ if __name__=="__main__":
     while True:
         bd.mqtt_loop()
         if bd.node_status(1) == 1:
+            print("New node:")
             my_list.append(bd.get_node())
-            pprint(my_list)
+            parsed = json.loads(json.dumps(my_list))
+            print(json.dumps(parsed, indent=4))
             bd.send_msg(my_list)
         elif bd.node_status(2) == 2:
+            print("Updated node:")
             temp_list = bd.update_node()
             key = temp_list['topic']
             for i in range(0, len(my_list)):
                 if my_list[i]['topic'] == key:
                     my_list[i] = temp_list
-            pprint(my_list)
+            parsed = json.loads(json.dumps(my_list))
+            print(json.dumps(parsed, indent=4))
             bd.send_msg(my_list)
