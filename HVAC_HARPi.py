@@ -22,10 +22,14 @@ coil_3_pin = 11  # pink
 coil_4_pin = 7   # blue
 coilList = [15,13,11,7]
 
+GPIO.setwarnings(False)
 GPIO.setup(coilList, GPIO.OUT)
 
+
 # Steps
-StepCount = 8
+steps = 128     #128-steps * 8-StepCount = 1024-steps: 90-degrees
+delay = 1/1000  #1ms
+StepCount = 8   #number of steps in Seq
 Seq = {}
 Seq[0] = [1,0,0,0]
 Seq[1] = [1,1,0,0]
@@ -43,28 +47,31 @@ def setStep(w1, w2, w3, w4):
     GPIO.output(coil_4_pin, w4)
  
 def open():
-    delay = 1/1000
-    steps = 128
     for i in range(steps): 
         for j in range(StepCount): 
-            setStep(Seq[j][0], Seq[j][1], Seq[j][2], Seq[j][3])
+            setStep(Seq[j][0], Seq[j][1], Seq[j][2], Seq[j][3]) #
             time.sleep(delay)
             
 def close():
-    delay = 1/1000
-    steps = 128
     for i in range(steps):
         for j in range(StepCount):
             setStep(Seq[j][3], Seq[j][2], Seq[j][1], Seq[j][0])
             time.sleep(delay)
 
-def sendTemp(temperature):
-    HVAC_HARPi_Child.status_msg(temperature)
+while(StepCount == 8):
+    temperature,pressure,humidity = BME280.readBME280All()             #instantiate  temperature, pressure, and humidty and pass the respective values with readBME280All()
+    HVAC_HARPi_Child.status_msg("{:.2f}".format(temperature))          #send temperature to MQTT broker as a string (was a float)
+    
+    desiredTemp = int(input("What is the desired temperature? ")  )         #ask user for desired temperature 
+    pressure = float(input("What is the static pressure inside HVAC node? ")) #ask user for static pressure to overwrite barometric pressure reading from BME280
+    if(pressure > 0.75):                                               #if pressure is greater than 0.75 inches of water column, then pressure is too high and the node must be opened
+        open()
+    if((pressure <= 0.75) and (desiredTemp != temperature)):           #if pressure is less than or equal to 0.75 inches of water column AND desiredTemp is not equal to temperature then close the node
+        close()
+        
+    setStep(0,0,0,0)
+    time.sleep(5)
 
-temperature,pressure,humidity = BME280.readBME280All()
-open()
-close()
-sendTemp("{:.2f}".format(temperature))
 
 
     
